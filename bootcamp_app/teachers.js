@@ -1,8 +1,5 @@
 const { Pool } = require('pg');
 
-const cohortName = process.argv[2];
-const resultsCount = process.argv[3];
-
 const pool = new Pool({
   user: 'vagrant',
   password: '123',
@@ -10,16 +7,21 @@ const pool = new Pool({
   database: 'bootcampx'
 });
 
-pool.query(`
-  SELECT DISTINCT teachers.name AS teacher,
-                  cohorts.name AS cohort
-  FROM assistance_requests
-  JOIN teachers ON teacher_id = teachers.id
-  JOIN students ON student_id = students.id
-  JOIN cohorts ON cohort_id = cohorts.id
-  WHERE cohorts.name = 'JUL02'
-  ORDER BY teacher;
-`)
+const queryString = `
+SELECT DISTINCT teachers.name AS teacher,
+                cohorts.name AS cohort
+FROM assistance_requests
+JOIN teachers ON teacher_id = teachers.id
+JOIN students ON student_id = students.id
+JOIN cohorts ON cohort_id = cohorts.id
+WHERE cohorts.name = 'JUL02'
+ORDER BY teacher;`;
+
+const cohortName = process.argv[2];
+// Store all potentially malicious values in an array.
+const values = [cohortName];
+
+pool.query(queryString, values)
   .then(res => {
     res.rows.forEach(user => {
       console.log(`${user.cohort}: ${user.teacher}`);
